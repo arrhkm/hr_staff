@@ -1,0 +1,152 @@
+<?php
+
+class DownloadAttController extends Controller
+{
+	
+	public function accessRules()
+	{
+		return array(
+			/*array('allow',  // allow all users to perform 'index' and 'view' actions
+				'actions'=>array('index','view'),
+				'users'=>array('*'),
+			),
+			array('allow', // allow authenticated user to perform 'create' and 'update' actions
+				'actions'=>array('index','view'),
+				'users'=>array('@'),
+			),
+			*/
+			array('allow', // allow admin user to perform 'admin' and 'delete' actions
+				'actions'=>array('index'),				
+				'expression'=>'$user->isStaff()',
+			),
+			array('allow', // allow admin user to perform 'admin' and 'delete' actions
+				'actions'=>array('index'),								
+				'expression'=>'$user->isAdmin()',
+			),
+			array('deny',  // deny all users
+				'users'=>array('*'),
+			),
+		);
+	}
+
+	public function actionIndex()
+	{
+		//$dt_array=array();
+		$IP= "192.168.100.136";
+		$Key= 80;
+		$Connect = fsockopen($IP, "80", $errno, $errstr, 1);
+		if($Connect){
+			$ket=1;
+			$soap_request="<GetAttLog><ArgComKey xsi:type=\"xsd:integer\">".$Key."</ArgComKey><Arg><PIN xsi:type=\"xsd:integer\">All</PIN></Arg></GetAttLog>";
+			$newLine="\r\n";
+			fputs($Connect, "POST /iWsService HTTP/1.0".$newLine);
+		    fputs($Connect, "Content-Type: text/xml".$newLine);
+		    fputs($Connect, "Content-Length: ".strlen($soap_request).$newLine.$newLine);
+		    fputs($Connect, $soap_request.$newLine);
+			$buffer="";
+			while($Response=fgets($Connect, 1024)){
+				$buffer=$buffer.$Response;
+			}
+		}else $ket=0;
+		
+		//include("parse.php");
+		yii::import('application.extensions.att.parse');
+		//
+		$buffer=$this->Parse_Data($buffer,"<GetAttLogResponse>","</GetAttLogResponse>");
+		$buffer=explode("\r\n",$buffer);
+		for($a=1;$a<count($buffer);$a++){
+			$data=$this->Parse_Data($buffer[$a],"<Row>","</Row>");
+			$PIN=$this->Parse_Data($data,"<PIN>","</PIN>");
+			$DateTime=$this->Parse_Data($data,"<DateTime>","</DateTime>");
+			$Verified=$this->Parse_Data($data,"<Verified>","</Verified>");
+			$Status=$this->Parse_Data($data,"<Status>","</Status>");
+			
+			if ($PIN <> 0 ) { 
+				$query="INSERT IGNORE engineatt(pin, dateatt, verified, status) 
+				VALUES ( $PIN,'$DateTime', $Verified, $Status)
+				;";
+				$connect= yii::app()->db;
+				$connect->createCommand($query)->query();
+											
+				$dt_array[$a]['PIN']=$PIN;
+				$dt_array[$a]['DateTime']=$DateTime;
+				$dt_array[$a]['Verified']=$Verified;
+				$dt_array[$a]['Status']=$Status;
+			}
+			
+		}
+
+		$this->render('index', array('dt_array'=>$dt_array, 'hakam'=>$hakam));
+	}
+	public function actionIntegrasi()
+	{
+		$model=New IntegrasiForm;
+		$connect= yii::app()->db;
+		if (isset($_POST['IntegrasiForm'])){
+			
+			$model->attributes=$_POST['IntegariForm'];
+			
+			$model->date1= $_POST['IntegrasiForm']['date1'];
+			$model->date2= $_POST['IntegrasiForm']['date2'];
+			$sql="
+				SELECT  distinct (date(dateatt)) as tgl
+				from engineatt
+				WHERE date(dateatt) between '$model->date1' AND '$model->date2'				
+			";
+			$dtdate= $connect->createCommand($sql)->query();
+
+			foreach($dtdate as $tgl_ini){
+				$dt[]= $tgl_ini['tgl'];//
+				$sqlEmp="
+					SELECT b.*, a.*
+					FROM card b, emp a
+					WHERE a.id = b.emp_id
+					";
+				$rsEmp= $connect->createCommand($sqlEmp)->query();
+				foreach ($rsEmp as $key=>$dtEmp){
+					$sqlIn= "
+					SELECT b.pin, b.status, date(b.dateatt) as  , time(b.dateatt) as time_in, 
+					a.id, a.name
+					FROM emp a, engineatt b, card c 
+					WHERE c.emp_id= a.id
+					AND b.pin= c.id 
+					AND DATE(b.dateatt) ='$tgl_ini[tgl]'
+					AND b.status=0
+					ORDER BY b.dateatt ASC
+					LIMIT 1
+				";
+				$rsEmp= $connect->createCommand($sqlEmp)->query();
+				foreach($rsEmp as $kEmp=>$vEmp){
+					$employee[pin]= $vEmp[pin];
+					$employee[emp_id]=$vEmp[id];
+					$employee[tgl]= $vEmp[tgl];
+					if ($vEmp[time_in]<=0){
+						$employee[time_in]=0;
+					}else {
+						$employee[time_in]= $vEmp[time_in];
+					}
+				}
+				}
+				
+			}
+
+		}
+		$this->render('integrasi', array('model'=>$model, 'dt'=>$dt));
+
+	}
+
+	public function Parse_Data($data,$p1,$p2) 
+	{
+		$data=" ".$data;
+		$hasil="";
+		$awal=strpos($data,$p1);
+		if($awal!=""){
+			$akhir=strpos(strstr($data,$p1),$p2);
+			if($akhir!=""){
+				$hasil=substr($data,$awal+strlen($p1),$akhir-strlen($p1));
+			}
+		}
+		return $hasil;	
+	}
+
+}
