@@ -18,24 +18,7 @@ $this->menu=array(
 
 <h1>View Emp #<?php echo $model->id; ?></h1>
 
-    <?php 
-    $this->widget(
-    'booster.widgets.TbDetailView',
-    array(
-    'data' => array(
-    'id' => 1,
-    'firstName' => 'Mark',
-    'lastName' => 'Otto',
-    'language' => 'CSS'
-    ),
-    'attributes' => array(
-    array('name' => 'firstName', 'label' => 'First name'),
-    array('name' => 'lastName', 'label' => 'Last name'),
-    array('name' => 'language', 'label' => 'Language'),
-    ),
-    )
-    );
-	?>
+    
 <?php 
 if (Yii::app()->user->level==9){
 //$this->widget('zii.widgets.CDetailView', array(

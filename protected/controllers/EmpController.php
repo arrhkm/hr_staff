@@ -95,11 +95,26 @@ class EmpController extends Controller
 		$model->gp= Convert::NumberToMoney($model->gp);
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
-
+		if ($model->start_job === '0000-00-00')
+		{
+			$model->start_job = date("Y-m-d");
+			//$model->warm_date = date('Y-m-d');
+		}
+		
+		
+		if ($model->warm_date==='0000-00-00'){
+			$date=date_create($model->start_job);
+			date_add($date,date_interval_create_from_date_string("3 month"));
+			//$datex = date(date_format($model->start_job, 'Y-m-d'), strtotime("+3 month"));
+			$model->warm_date = date_format($date, 'Y-m-d');
+			
+		}
 		if(isset($_POST['Emp']))
 		{
 			$model->attributes=$_POST['Emp'];
 			$model->gp= Convert::MoneyToNumber($model->gp);
+			
+			
 			if($model->save())
 				$this->redirect(array('view','id'=>$model->id));
 		}

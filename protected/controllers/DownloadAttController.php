@@ -254,7 +254,7 @@ class DownloadAttController extends Controller
 					}else $punchOut=$rsOut['dateatt'];				
 					
 					
-					if (!($punchIn ==="NULL")&& ($punchOut==="NULL")){
+					if ((!$punchIn ==="NULL")&& (!$punchOut==="NULL")){
 						$sqlIgnore="
 						REPLACE INTO attendance (date_job, emp_id, dt_in ) VALUES ('$ini[tgl]', '$vEmp[emp_id]', '$punchIn');
 						";
@@ -264,11 +264,15 @@ class DownloadAttController extends Controller
 						";
 					}
 					
-					if(!($punchIn==="NULL") && !($punchOut ==="NULL")){
+					else if((!$punchIn==="NULL") && (!$punchOut ==="NULL")){
 						$sqlIgnore="
 						REPLACE INTO attendance (date_job, emp_id, dt_in, dt_out ) VALUES ('$ini[tgl]', '$vEmp[emp_id]', '$punchIn', '$punchOut');
 						";
 						//yii::app()->db->createCommand($sqlIgnore)->query();
+					}else {
+						$sqlIgnore= "
+						REPLACE INTO attendance (date_job, emp_id ) VALUES ('$ini[tgl]', '$vEmp[emp_id]');
+						"; 
 					}
 
 					//$sqlIgnore="

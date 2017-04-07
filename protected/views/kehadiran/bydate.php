@@ -80,7 +80,7 @@ $sql= "
         hr_staff.attendance as a 
         JOIN emp as b	ON (b.id= a.emp_id)
     WHERE a.date_job  BETWEEN '$date1' AND '$date2'				
-    ORDER BY a.emp_id, a.date_job;
+    ORDER BY a.dt_in, a.date_job, a.emp_id;
 ";
 $sql_count="
     SELECT  COUNT(*)

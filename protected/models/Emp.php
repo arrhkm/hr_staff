@@ -66,7 +66,8 @@ class Emp extends CActiveRecord
 			array('name, jamsostek_id, bank_account, npwp, email', 'length', 'max'=>45),
 			array('gender', 'length', 'max'=>1),
 			array('citizen_id', 'length', 'max'=>19),
-			array('gp, tmasakerja, tjabatan, tfunctional, allowance, premi_hadir, uang_makan, dapen', 'length', 'max'=>10),
+			array('gp, tmasakerja, tjabatan, tfunctional, premi_hadir, uang_makan, dapen', 'length', 'max'=>12),
+			array('allowance', 'length', 'max'=>12),
 			array('start_job, warm_date', 'safe'),
 			// The following rule is used by search().
 			// @todo Please remove those attributes that should not be searched.
