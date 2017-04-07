@@ -109,6 +109,15 @@ return array(
 				*/
 			),
 		),
+		'smtpmail'=>array(
+			'class'=>'application.extensions.smtpmail.PHPMailer',
+			'Host'=>"mail.gmail.com",
+			'Username'=>'arrafhakam@gmail.com',
+			'Password'=>'googleglagah071183',
+			'Mailer'=>'smtp',
+			'Port'=>25,
+			'SMTPAuth'=>true,
+		),
 	),
 
 	// application-level parameters that can be accessed

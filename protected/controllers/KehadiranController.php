@@ -33,7 +33,7 @@ class KehadiranController extends Controller
 				'users'=>array('@'),
 			),
 			array('allow', // allow admin user to perform 'admin' and 'delete' actions
-				'actions'=>array('index','bydate', 'createcuti'),
+				'actions'=>array('index','bydate', 'createcuti', 'sendmailku'),
 				'expression'=>'$user->isAdmin()',
 			),
 			array('deny',  // deny all users
@@ -168,6 +168,31 @@ class KehadiranController extends Controller
 
 
 	}
+
+	public function actionSendmailku(){
+		$to = 'hakam@lintech.co.id';
+		$from = 'Hakam';
+		$subject= 'Hallo apakabar';
+		$message = 'Aku njajal message dulu ya';
+
+		$this->mailsend($to, $from, $subject, $message);
+		$this->redirect(array('index'));
+
+	}
+
+	public function mailsend($to,$from,$subject,$message){
+        $mail=Yii::app()->smtpmail;
+        $mail->SetFrom($from, 'From NAme');
+        $mail->Subject = $subject;
+        $mail->MsgHTML($message);
+        $mail->AddAddress($to, "");
+        if(!$mail->Send()) {
+            echo "Mailer Error: " . $mail->ErrorInfo;
+        }else {
+            echo "Message sent!";
+        }
+    }
+
 	public function pengurangan($x, $y){
 		return $x-$y;
 	}
